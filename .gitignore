@@ -31,6 +31,8 @@ backend/data/processed/
 backend/vector_db/
 *.parquet
 *.sqlite3
+*.sqlite
+*.db
 
 # Logs
 *.log

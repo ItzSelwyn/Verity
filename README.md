@@ -102,67 +102,128 @@ The knowledge base will include:
 - [x] Research LLM evaluation techniques.
 - [x] Study hallucination detection and RAG architecture.
 - [x] Explore RAGAS and TruLens.
-- [ ] Design system architecture and agent responsibilities.
-- [ ] Define evaluation dimensions and scoring methodology.
-- [ ] Develop the evaluation input module.
+- [x] Design system architecture and agent responsibilities.
+- [x] Define evaluation dimensions and scoring methodology.
+- [x] Develop the evaluation input module (FastAPI backend + React frontend).
 - [ ] Ingest TruthfulQA and SQuAD datasets.
 - [ ] Implement chunking, embeddings, and vector indexing.
 - [ ] Test semantic retrieval.
 
-### Future Milestones
+### Current Implementation Status
 
-Detailed implementation scope and features will be added as subsequent milestone requirements are finalized.
+| Component | Status | Details |
+|---|---|---|
+| **Evaluation Input Module (Backend)** | ✅ Implemented | FastAPI endpoints for `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, and `/health` with Pydantic validation and SQLite persistence via SQLAlchemy. |
+| **Evaluation Input UI (Frontend)** | ✅ Implemented | React + Vite application with New Evaluation submission form, client-side validation, loading/error states, and Evaluation History viewer with details panel. |
+| **Automated Test Suite** | ✅ Implemented | 23 unit and integration tests covering API routes, validation rules, pagination, and database isolation using pytest and TestClient. |
+| **Reference Knowledge Base** | ⏳ Planned (M1.4) | Ingestion of TruthfulQA and SQuAD, chunking, and ChromaDB indexing. |
+| **Multi-Agent Evaluation Layer** | ⏳ Planned (M2) | Orchestrator, Judge agents (Relevance, Accuracy, Hallucination, Completeness), and Verdict agent. |
 
 ## 📁 Project Structure
 
 ```text
-verity-ai/
+Verity/
 │
 ├── backend/
 │   ├── app/
-│   ├── data/
-│   ├── vector_db/
+│   │   ├── api/
+│   │   │   └── routes/
+│   │   │       └── evaluation.py       # API endpoints (/evaluations/, /health)
+│   │   ├── core/
+│   │   │   └── database.py          # SQLAlchemy engine, session maker, get_db dependency
+│   │   ├── models/
+│   │   │   └── evaluation.py        # EvaluationSubmission SQLAlchemy ORM model
+│   │   ├── schemas/
+│   │   │   └── evaluation.py        # Pydantic request & response schemas
+│   │   ├── services/
+│   │   │   └── evaluation_service.py # Database query and persistence business logic
+│   │   └── main.py                  # FastAPI app creation, CORS middleware, lifespan
 │   ├── tests/
-│   └── requirements.txt
+│   │   └── test_evaluation.py       # 23 pytest tests with isolated in-memory SQLite
+│   ├── requirements.txt             # Python backend dependencies
+│   └── .env.example                 # Example backend environment configuration
 │
 ├── frontend/
-│   └── src/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── evaluationApi.ts     # Axios-based API client for backend endpoints
+│   │   ├── components/
+│   │   │   ├── Layout.tsx           # Main application shell with sidebar
+│   │   │   ├── Sidebar.tsx          # Navigation sidebar with Verity branding
+│   │   │   └── StatusBadge.tsx      # Visual status pill (pending, running, etc.)
+│   │   ├── pages/
+│   │   │   ├── NewEvaluationPage.tsx # Evaluation submission form with validation
+│   │   │   └── EvaluationHistoryPage.tsx # Submissions list with side-by-side details
+│   │   ├── types/
+│   │   │   └── evaluation.ts        # TypeScript data interfaces
+│   │   ├── App.tsx                  # React Router configuration
+│   │   ├── main.tsx                 # Entry point
+│   │   └── index.css                # Global dark-theme design tokens
+│   ├── package.json                 # React, Vite, Axios, React Router dependencies
+│   ├── .env.example                 # Frontend environment template (VITE_API_BASE_URL)
+│   └── vite.config.ts               # Vite configuration
 │
-├── docs/
+├── docs/                            # Research & architecture documentation
+│   ├── architecture/
+│   ├── datasets/
+│   └── research/
 │
 ├── README.md
 └── .gitignore
 ```
-
-The project structure will evolve as development progresses.
 
 ## 💻 Getting Started
 
 ### Prerequisites
 
 - Python 3.11
-- Node.js and npm
+- Node.js (v18+) and npm
 - Git
-- VS Code (recommended)
 
-### Backend Setup
+### Backend Setup & Execution
 
-```bash
-cd backend
+1. Navigate to the backend directory and activate the virtual environment:
+   ```powershell
+   cd backend
+   .\venv\Scripts\Activate.ps1
+   ```
+2. Install dependencies:
+   ```powershell
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI development server:
+   ```powershell
+   uvicorn app.main:app --reload --port 8000
+   ```
+4. Access backend services:
+   - **Interactive API Documentation (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
+   - **Alternative API Documentation (ReDoc):** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+   - **Health Probe:** [http://localhost:8000/health](http://localhost:8000/health)
 
-# Windows PowerShell
-py -3.11 -m venv venv
+5. Run automated tests:
+   ```powershell
+   pytest tests -v
+   ```
 
-.\venv\Scripts\Activate.ps1
+### Frontend Setup & Execution
 
-python -m pip install --upgrade pip
-```
-
-Backend dependencies and execution instructions will be updated as implementation progresses.
-
-### Frontend Setup
-
-Frontend dependencies and execution instructions will be added when the React application is initialized.
+1. Navigate to the frontend directory:
+   ```powershell
+   cd frontend
+   ```
+2. Install dependencies:
+   ```powershell
+   npm install
+   ```
+3. Copy environment configuration:
+   ```powershell
+   cp .env.example .env.local
+   ```
+4. Start the Vite development server:
+   ```powershell
+   npm run dev
+   ```
+5. Open your browser at [http://localhost:5173](http://localhost:5173).
 
 ## 🔬 Research References
 
