@@ -9,17 +9,7 @@ the session is always closed after the request completes.
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-
-# Load environment variables from a .env file if it exists
-load_dotenv()
-
-# -----------------------------------------------------------------
-# Database URL
-# -----------------------------------------------------------------
-# Default to a SQLite file named `verity_dev.db` in the backend/ directory.
-# This can be overridden by setting DATABASE_URL in a .env file.
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./verity_dev.db")
+from app.core.config import DATABASE_URL
 
 # -----------------------------------------------------------------
 # Engine

@@ -105,18 +105,18 @@ The knowledge base will include:
 - [x] Design system architecture and agent responsibilities.
 - [x] Define evaluation dimensions and scoring methodology.
 - [x] Develop the evaluation input module (FastAPI backend + React frontend).
-- [ ] Ingest TruthfulQA and SQuAD datasets.
-- [ ] Implement chunking, embeddings, and vector indexing.
-- [ ] Test semantic retrieval.
+- [x] Ingest TruthfulQA and SQuAD datasets.
+- [x] Implement chunking, embeddings, and vector indexing.
+- [x] Test semantic retrieval.
 
 ### Current Implementation Status
 
 | Component | Status | Details |
 |---|---|---|
 | **Evaluation Input Module (Backend)** | ✅ Implemented | FastAPI endpoints for `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, and `/health` with Pydantic validation and SQLite persistence via SQLAlchemy. |
-| **Evaluation Input UI (Frontend)** | ✅ Implemented | React + Vite application with New Evaluation submission form, client-side validation, loading/error states, and Evaluation History viewer with details panel. |
-| **Automated Test Suite** | ✅ Implemented | 23 unit and integration tests covering API routes, validation rules, pagination, and database isolation using pytest and TestClient. |
-| **Reference Knowledge Base** | ⏳ Planned (M1.4) | Ingestion of TruthfulQA and SQuAD, chunking, and ChromaDB indexing. |
+| **Evaluation Input UI (Frontend)** | ✅ Implemented | React + Vite application with modern black-and-white aesthetic, collapsible icon sidebar, New Evaluation form, client-side validation, loading/error states, and Evaluation History viewer. |
+| **Reference Knowledge Base & RAG** | ✅ Implemented (M1.4) | Chunking pipeline (500 tokens, 75 overlap), embedding service (`all-MiniLM-L6-v2`, 384-d normalized), persistent ChromaDB vector store, TruthfulQA + SQuAD ingestion pipeline, semantic retrieval service with similarity scoring and provenance packaging, and REST API endpoints (`/api/v1/retrieval/query`, `/api/v1/retrieval/status`). |
+| **Automated Test Suite** | ✅ Implemented | 35 unit and integration tests covering submission CRUD, input validation, chunking, embeddings, vector indexing, semantic retrieval, and API endpoints using pytest. |
 | **Multi-Agent Evaluation Layer** | ⏳ Planned (M2) | Orchestrator, Judge agents (Relevance, Accuracy, Hallucination, Completeness), and Verdict agent. |
 
 ## 📁 Project Structure
@@ -128,42 +128,55 @@ Verity/
 │   ├── app/
 │   │   ├── api/
 │   │   │   └── routes/
-│   │   │       └── evaluation.py       # API endpoints (/evaluations/, /health)
+│   │   │       ├── evaluation.py       # API endpoints (/evaluations/, /health)
+│   │   │       └── retrieval.py        # Semantic retrieval API endpoints (/api/v1/retrieval/)
 │   │   ├── core/
-│   │   │   └── database.py          # SQLAlchemy engine, session maker, get_db dependency
+│   │   │   ├── config.py               # Settings (paths, DB URLs, model configs)
+│   │   │   └── database.py             # SQLAlchemy engine, session maker, get_db dependency
 │   │   ├── models/
-│   │   │   └── evaluation.py        # EvaluationSubmission SQLAlchemy ORM model
+│   │   │   └── evaluation.py           # EvaluationSubmission SQLAlchemy ORM model
+│   │   ├── rag/
+│   │   │   ├── chunker.py              # Text chunker (500 tokens, 75 overlap)
+│   │   │   ├── embedder.py             # EmbeddingService (all-MiniLM-L6-v2, 384-d normalized)
+│   │   │   ├── ingestion.py            # Benchmark ingestion (TruthfulQA + SQuAD)
+│   │   │   ├── retriever.py            # SemanticRetriever with scoring & provenance
+│   │   │   └── vector_store.py         # ChromaVectorStore wrapper with persistence
 │   │   ├── schemas/
-│   │   │   └── evaluation.py        # Pydantic request & response schemas
+│   │   │   ├── evaluation.py           # Pydantic request & response schemas for submissions
+│   │   │   └── retrieval.py            # Pydantic request & response schemas for retrieval
 │   │   ├── services/
-│   │   │   └── evaluation_service.py # Database query and persistence business logic
-│   │   └── main.py                  # FastAPI app creation, CORS middleware, lifespan
+│   │   │   └── evaluation_service.py   # Database query and persistence business logic
+│   │   └── main.py                     # FastAPI app creation, CORS middleware, lifespan
+│   ├── scripts/
+│   │   └── ingest_knowledge_base.py    # CLI script to ingest benchmark datasets into ChromaDB
 │   ├── tests/
-│   │   └── test_evaluation.py       # 23 pytest tests with isolated in-memory SQLite
-│   ├── requirements.txt             # Python backend dependencies
-│   └── .env.example                 # Example backend environment configuration
+│   │   ├── test_evaluation.py          # 23 pytest tests for submission CRUD & validation
+│   │   └── test_rag.py                 # 12 pytest tests for chunking, embeddings, ChromaDB, & retrieval
+│   ├── requirements.txt                # Python backend dependencies
+│   └── .env.example                    # Example backend environment configuration
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── evaluationApi.ts     # Axios-based API client for backend endpoints
+│   │   │   └── evaluationApi.ts        # Axios-based API client for backend endpoints
 │   │   ├── components/
-│   │   │   ├── Layout.tsx           # Main application shell with sidebar
-│   │   │   ├── Sidebar.tsx          # Navigation sidebar with Verity branding
-│   │   │   └── StatusBadge.tsx      # Visual status pill (pending, running, etc.)
+│   │   │   ├── icons.tsx               # Minimalist bespoke SVG icons
+│   │   │   ├── Layout.tsx              # Main application shell with collapsible sidebar
+│   │   │   ├── Sidebar.tsx             # Collapsible sidebar with Verity branding
+│   │   │   └── StatusBadge.tsx         # Visual status pill (pending, running, etc.)
 │   │   ├── pages/
-│   │   │   ├── NewEvaluationPage.tsx # Evaluation submission form with validation
+│   │   │   ├── NewEvaluationPage.tsx   # Evaluation submission form with validation
 │   │   │   └── EvaluationHistoryPage.tsx # Submissions list with side-by-side details
 │   │   ├── types/
-│   │   │   └── evaluation.ts        # TypeScript data interfaces
-│   │   ├── App.tsx                  # React Router configuration
-│   │   ├── main.tsx                 # Entry point
-│   │   └── index.css                # Global dark-theme design tokens
-│   ├── package.json                 # React, Vite, Axios, React Router dependencies
-│   ├── .env.example                 # Frontend environment template (VITE_API_BASE_URL)
-│   └── vite.config.ts               # Vite configuration
+│   │   │   └── evaluation.ts           # TypeScript data interfaces
+│   │   ├── App.tsx                     # React Router configuration
+│   │   ├── main.tsx                    # Entry point
+│   │   └── index.css                   # Global clean white/black theme design tokens
+│   ├── package.json                    # React, Vite, Axios, React Router dependencies
+│   ├── .env.example                    # Frontend environment template (VITE_API_BASE_URL)
+│   └── vite.config.ts                  # Vite configuration
 │
-├── docs/                            # Research & architecture documentation
+├── docs/                               # Research & architecture documentation
 │   ├── architecture/
 │   ├── datasets/
 │   └── research/
@@ -200,7 +213,16 @@ Verity/
    - **Alternative API Documentation (ReDoc):** [http://localhost:8000/redoc](http://localhost:8000/redoc)
    - **Health Probe:** [http://localhost:8000/health](http://localhost:8000/health)
 
-5. Run automated tests:
+5. Ingest reference benchmark datasets into ChromaDB:
+   ```powershell
+   # Ingest TruthfulQA (validation split) and SQuAD v1.1
+   python scripts/ingest_knowledge_base.py --dataset all --limit 500
+
+   # Or ingest full TruthfulQA benchmark
+   python scripts/ingest_knowledge_base.py --dataset truthfulqa
+   ```
+
+6. Run automated tests:
    ```powershell
    pytest tests -v
    ```

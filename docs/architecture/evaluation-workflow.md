@@ -92,11 +92,11 @@ For each evaluation run, retain (subject to privacy and retention policy):
 
 ## 9. Implementation stages & progress
 
-1. **Stage 1 (Completed):** Complete and test the submission API (`POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, `/health`).
-2. **Stage 2 (Completed):** Build the frontend input form, history browser, and connect to the API with validation and error handling.
-3. **Stage 3 (Upcoming — M1.4):** Ingest and validate the initial reference datasets (TruthfulQA, SQuAD).
-4. **Stage 4 (Upcoming — M1.4):** Implement chunking, embeddings, and ChromaDB vector indexing.
-5. **Stage 5 (Upcoming — M1.4):** Build and test semantic retrieval of relevant reference content.
+1. **Stage 1 (Completed — M1.3):** Complete and test the submission API (`POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, `/health`).
+2. **Stage 2 (Completed — M1.3):** Build the frontend input form, history browser, and connect to the API with validation and error handling.
+3. **Stage 3 (Completed — M1.4):** Ingest and clean the initial reference datasets (TruthfulQA validation split, SQuAD v1.1 validation split).
+4. **Stage 4 (Completed — M1.4):** Implement chunking (~500 tokens, 75 overlap), embedding generation (`all-MiniLM-L6-v2`), and ChromaDB persistent vector indexing.
+5. **Stage 5 (Completed — M1.4):** Build and test semantic retrieval service with similarity scoring, threshold filtering, and provenance packaging (`/api/v1/retrieval/query`).
 6. **Stage 6 (Upcoming — M2):** Add agent interfaces and structured mock evaluator responses.
 7. **Stage 7 (Upcoming — M2):** Integrate model-backed judges (Relevance, Accuracy, Hallucination, Completeness).
 8. **Stage 8 (Upcoming — M2):** Implement aggregation, report persistence, and end-to-end evaluation pipeline.

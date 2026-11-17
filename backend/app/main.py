@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.evaluation import router as evaluation_router
+from app.api.routes.retrieval import router as retrieval_router
 from app.core.database import Base, engine
 
 
@@ -66,10 +67,11 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
-# Evaluation endpoints are served under /api/v1 for standard API versioning,
+# Evaluation & Retrieval endpoints are served under /api/v1 for standard API versioning,
 # and also mounted at root so calls to /evaluations/ and /health work directly.
 app.include_router(evaluation_router, prefix="/api/v1")
 app.include_router(evaluation_router, prefix="", include_in_schema=False)
+app.include_router(retrieval_router, prefix="/api/v1")
 
 
 # ---------------------------------------------------------------------------

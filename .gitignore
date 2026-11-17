@@ -26,8 +26,7 @@ dist/
 build/
 
 # Datasets and generated data
-backend/data/raw/
-backend/data/processed/
+backend/data/
 backend/vector_db/
 *.parquet
 *.sqlite3

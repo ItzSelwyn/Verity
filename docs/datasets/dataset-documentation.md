@@ -113,13 +113,47 @@ After indexing:
 - Check that each result has source provenance.
 - Record retrieval failures and adjust chunking or retrieval settings.
 
-## 7. Dataset scope and limitations
+## 7. Implemented Ingestion & Retrieval Pipeline (M1.4)
+
+The pipeline is implemented under `backend/app/rag/` and invoked via `backend/scripts/ingest_knowledge_base.py`.
+
+### Pipeline Components
+1. **DocumentChunker (`backend/app/rag/chunker.py`)**:
+   - Token-aware chunking targeting ~500 tokens (approx. 2000 chars) with 75-token overlap (~300 chars).
+   - Preserves sentence boundaries where possible (`. `, `\n`, `! `, `? `).
+   - Generates chunk-level metadata including `chunk_index`, `start_char`, `end_char`, and `token_count`.
+
+2. **EmbeddingService (`backend/app/rag/embedder.py`)**:
+   - Embeds text using `sentence-transformers/all-MiniLM-L6-v2`.
+   - Produces 384-dimensional dense vectors with L2 normalization enabled (`normalize_embeddings=True`).
+   - Implements thread-safe singleton loading and batch processing.
+
+3. **ChromaVectorStore (`backend/app/rag/vector_store.py`)**:
+   - Persistent ChromaDB client targeting `backend/data/vector_db/`.
+   - Uses cosine distance space (`hnsw:space: "cosine"`).
+   - Metadata sanitization ensuring all stored values are primitive types (`str`, `int`, `float`, `bool`).
+
+4. **BenchmarkIngestionPipeline (`backend/app/rag/ingestion.py`)**:
+   - **TruthfulQA**: Loads `validation` split of `generation` configuration. Normalizes question, verified truth, category/topic, and source URL into structured knowledge passages.
+   - **SQuAD v1.1**: Loads `validation` split. Deduplicates shared Wikipedia article contexts via MD5 hashing to prevent redundant passages, preserves article title, context, and representative answer annotations.
+
+5. **SemanticRetriever (`backend/app/rag/retriever.py`)**:
+   - Converts natural language queries to 384-d normalized embeddings.
+   - Performs k-NN search in ChromaDB.
+   - Calculates cosine similarity score ($S = 1.0 - \text{distance}$).
+   - Filters results by similarity threshold ($\ge 0.25$) and packages results with full provenance (`source_id`, `dataset`, `title`, `chunk_index`, `metadata`).
+
+6. **API Endpoints (`backend/app/api/routes/retrieval.py`)**:
+   - `POST /api/v1/retrieval/query`: Query reference knowledge base with `query_text`, `top_k`, and optional `dataset` filter.
+   - `GET /api/v1/retrieval/status`: Check collection status, vector database directory, and indexed chunk count.
+
+## 8. Dataset scope and limitations
 
 These datasets are useful starting points, not a complete factual knowledge base. They are not guaranteed to cover current events, every domain, or all user questions. Dataset-derived evidence should be labelled as such and not presented as universally authoritative.
 
 For real-world use, add curated, domain-appropriate sources and track their publication dates and trust levels.
 
-## 8. References
+## 9. References
 
 - TruthfulQA: https://huggingface.co/datasets/truthfulqa/truthful_qa
 - SQuAD: https://huggingface.co/datasets/rajpurkar/squad

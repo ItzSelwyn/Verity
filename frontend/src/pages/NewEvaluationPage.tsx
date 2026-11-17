@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Sparkles,
 } from '../components/icons';
 import { submitEvaluation, extractApiError } from '../api/evaluationApi';
 import type { EvaluationSubmitRequest } from '../types/evaluation';
@@ -110,10 +109,6 @@ const NewEvaluationPage: React.FC = () => {
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
-          <div style={styles.headerBadge}>
-            <Sparkles size={14} />
-            <span>SUBMISSION MODULE</span>
-          </div>
           <h1 style={styles.title}>New Evaluation</h1>
           <p style={styles.subtitle}>
             Submit an AI-generated response alongside optional ground-truth evidence to verify accuracy, hallucination risks, and completeness.

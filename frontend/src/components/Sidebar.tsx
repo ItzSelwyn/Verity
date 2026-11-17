@@ -52,7 +52,6 @@ const Sidebar: React.FC = () => {
           {!collapsed && (
             <div style={styles.brandTextGroup}>
               <span style={styles.brandName}>Verity</span>
-              <span style={styles.brandBadge}>EVAL</span>
             </div>
           )}
         </div>

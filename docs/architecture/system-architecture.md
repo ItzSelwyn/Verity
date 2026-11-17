@@ -92,18 +92,22 @@ The stack is the initial project design and may be revised after implementation 
 
 ## 7. Current implementation boundary & status
 
-### Implemented in Milestone 1 (Evaluation Input Module)
-- **Frontend Submission & History UI**: React + Vite application providing the evaluation submission form, input validation, loading states, and history browsing with detail views.
-- **Backend API Layer**: FastAPI application exposing `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/` (paginated), and `/health` with CORS support for local development.
+### Implemented in Milestone 1 (Foundation, Input Module & Reference Knowledge Base)
+- **Frontend Submission & History UI**: React + Vite application providing the evaluation submission form, collapsible icon sidebar, input validation, loading states, and history browsing with detail views.
+- **Backend API Layer**: FastAPI application exposing `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/` (paginated), `/health`, `POST /api/v1/retrieval/query`, and `GET /api/v1/retrieval/status` with CORS support for local development.
 - **Input Validation**: Pydantic v2 schemas validating required fields, trimming whitespace, enforcing character limits (10–5,000 for question, 10–20,000 for AI response, up to 10,000 for reference answer, up to 50,000 for source document), and coercing blank optional fields to `None`.
 - **Relational Persistence**: SQLite database managed via SQLAlchemy ORM with the `evaluation_submissions` table storing question, AI response, optional reference answer, optional source text, status, and UTC timestamp.
-- **Test Suite**: Automated pytest suite verifying all endpoints, status codes, database session handling, and validation rules against an isolated in-memory SQLite database.
+- **Reference Knowledge Base & Ingestion (M1.4)**: Benchmark ingestion pipeline for TruthfulQA (`generation`, `validation` split) and SQuAD v1.1 (`validation` split) with automatic deduplication of shared Wikipedia contexts.
+- **Text Chunking Pipeline (M1.4)**: Token-aware chunker with ~500 target tokens, 75-token overlap, sentence boundary protection, and positional chunk index metadata.
+- **Embedding Generation (M1.4)**: Sentence Transformers (`sentence-transformers/all-MiniLM-L6-v2`) generating 384-dimensional L2-normalized dense vector embeddings.
+- **Vector Database Indexing (M1.4)**: Persistent ChromaDB collection storing chunk vectors, chunk text, and clean primitive metadata (source ID, title, dataset name, split, chunk index, token count).
+- **Semantic Retrieval Service (M1.4)**: Query embedding, top-k nearest neighbor search in cosine distance space, cosine similarity score calculation ($1.0 - \text{distance}$), similarity threshold filtering (0.25 minimum), and structured provenance packaging (`RetrievedEvidence`, `RetrievalPackage`).
+- **Test Suite**: Automated pytest suite of 35 tests verifying submission CRUD, validation edge cases, chunking behavior, embedding dimensions, vector store isolation, semantic retrieval, and API endpoints.
 
-### Planned for subsequent phases
-- **Reference Knowledge Base (M1.4)**: Ingestion of TruthfulQA and SQuAD, chunking, embedding generation with Sentence Transformers, and ChromaDB vector indexing.
-- **RAG Retrieval Pipeline (M1.4)**: Semantic similarity search for relevant reference passages.
+### Planned for Milestone 2 (Multi-Agent Evaluation Layer)
 - **Multi-Agent Evaluation Pipeline (M2)**: Evaluation Orchestrator, Judge Agents (Relevance, Accuracy, Hallucination, Completeness), and Verdict Agent.
-- **Advanced Features**: PDF/file uploads, document parsing, batch evaluation, and background job queueing.
+- **Structured Evaluation Output (M2)**: Dimension scoring (0-10), contradiction detection, evidence grounding citation, and actionable verdict reports.
+- **Advanced Features (Subsequent Milestones)**: PDF/file uploads, document parsing, batch evaluation, and background job queueing.
 
 ## 8. M1.1 findings summary
 
