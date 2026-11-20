@@ -97,6 +97,7 @@ For each evaluation run, retain (subject to privacy and retention policy):
 3. **Stage 3 (Completed — M1.4):** Ingest and clean the initial reference datasets (TruthfulQA validation split, SQuAD v1.1 validation split).
 4. **Stage 4 (Completed — M1.4):** Implement chunking (~500 tokens, 75 overlap), embedding generation (`all-MiniLM-L6-v2`), and ChromaDB persistent vector indexing.
 5. **Stage 5 (Completed — M1.4):** Build and test semantic retrieval service with similarity scoring, threshold filtering, and provenance packaging (`/api/v1/retrieval/query`).
-6. **Stage 6 (Upcoming — M2):** Add agent interfaces and structured mock evaluator responses.
-7. **Stage 7 (Upcoming — M2):** Integrate model-backed judges (Relevance, Accuracy, Hallucination, Completeness).
-8. **Stage 8 (Upcoming — M2):** Implement aggregation, report persistence, and end-to-end evaluation pipeline.
+6. **Stage 6 (Completed — M2.1):** Build the Relevance Judge Agent with calibrated 0–10 rubric, structured Pydantic input/output schemas, LLM/deterministic fallback engines, and Evaluation Orchestrator integration.
+7. **Stage 7 (Upcoming — M2.2):** Implement the Accuracy Judge Agent (grounding against reference answers & RAG evidence passages).
+8. **Stage 8 (Upcoming — M2.3):** Implement the Hallucination Detection Agent (atomic claim extraction & contradiction detection).
+9. **Stage 9 (Upcoming — M2.4):** Benchmark validation, consistency testing, and scoring calibration across TruthfulQA and SQuAD.

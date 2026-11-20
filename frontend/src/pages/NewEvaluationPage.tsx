@@ -127,7 +127,7 @@ const NewEvaluationPage: React.FC = () => {
                 Your submission has been safely persisted to the database with status <strong>Pending</strong>.
               </p>
               <Link to={`/history/${successId}`} style={styles.bannerActionBtn}>
-                <span>Open in History</span>
+                <span>View & Run Evaluation</span>
                 <ArrowRight size={15} />
               </Link>
             </div>

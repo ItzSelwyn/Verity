@@ -10,7 +10,7 @@ independently.
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -130,6 +130,18 @@ class EvaluationResponse(BaseModel):
     source_document: Optional[str]
     status: str
     created_at: datetime
+    evaluation_result: Optional[Any] = None
+
+    @field_validator("evaluation_result", mode="before")
+    @classmethod
+    def parse_evaluation_result(cls, v: Any) -> Any:
+        if isinstance(v, str) and v.strip():
+            try:
+                import json
+                return json.loads(v)
+            except Exception:
+                return v
+        return v
 
     model_config = {"from_attributes": True}
 

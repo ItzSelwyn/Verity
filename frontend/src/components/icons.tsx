@@ -457,3 +457,68 @@ export const ArrowRight: React.FC<IconProps> = ({
     <path d="m12 5 7 7-7 7" />
   </svg>
 );
+
+export const Zap: React.FC<IconProps> = ({
+  size = 16,
+  color = 'currentColor',
+  strokeWidth = 2,
+  ...props
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+
+export const Database: React.FC<IconProps> = ({
+  size = 16,
+  color = 'currentColor',
+  strokeWidth = 2,
+  ...props
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+    <path d="M3 12A9 3 0 0 0 21 12" />
+  </svg>
+);
+
+export const Check: React.FC<IconProps> = ({
+  size = 14,
+  color = 'currentColor',
+  strokeWidth = 2,
+  ...props
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);

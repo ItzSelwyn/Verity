@@ -109,6 +109,13 @@ The knowledge base will include:
 - [x] Implement chunking, embeddings, and vector indexing.
 - [x] Test semantic retrieval.
 
+### Milestone 2 — Evaluation Judge Agents & Validation
+
+- [x] **M2.1 — Relevance Judge Agent**: Scoring scale (0–10), structured reasoning, classification bands, Evaluation Orchestrator integration, and benchmark validation.
+- [ ] **M2.2 — Accuracy Judge Agent**: Factuality verification against reference answers & RAG knowledge base.
+- [ ] **M2.3 — Hallucination Detection Agent**: Atomic claim extraction and unsupported claim flagging.
+- [ ] **M2.4 — Agent Evaluation & Consistency Validation**: Benchmark test suite calibration.
+
 ### Current Implementation Status
 
 | Component | Status | Details |
@@ -116,8 +123,9 @@ The knowledge base will include:
 | **Evaluation Input Module (Backend)** | ✅ Implemented | FastAPI endpoints for `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, and `/health` with Pydantic validation and SQLite persistence via SQLAlchemy. |
 | **Evaluation Input UI (Frontend)** | ✅ Implemented | React + Vite application with modern black-and-white aesthetic, collapsible icon sidebar, New Evaluation form, client-side validation, loading/error states, and Evaluation History viewer. |
 | **Reference Knowledge Base & RAG** | ✅ Implemented (M1.4) | Chunking pipeline (500 tokens, 75 overlap), embedding service (`all-MiniLM-L6-v2`, 384-d normalized), persistent ChromaDB vector store, TruthfulQA + SQuAD ingestion pipeline, semantic retrieval service with similarity scoring and provenance packaging, and REST API endpoints (`/api/v1/retrieval/query`, `/api/v1/retrieval/status`). |
-| **Automated Test Suite** | ✅ Implemented | 35 unit and integration tests covering submission CRUD, input validation, chunking, embeddings, vector indexing, semantic retrieval, and API endpoints using pytest. |
-| **Multi-Agent Evaluation Layer** | ⏳ Planned (M2) | Orchestrator, Judge agents (Relevance, Accuracy, Hallucination, Completeness), and Verdict agent. |
+| **Relevance Judge Agent & Orchestrator** | ✅ Implemented (M2.1) | Relevance Judge Agent evaluating directness and intent on a 0–10 scale (`fully_relevant`, `mostly_relevant`, `partially_relevant`, `off_topic`, `unrelated`), pluggable LLM/deterministic fallback engine, and Evaluation Orchestrator (`POST /api/v1/judge/relevance`, `POST /api/v1/judge/submissions/{id}/evaluate`). |
+| **Automated Test Suite** | ✅ Implemented | 48 unit and integration tests covering submission CRUD, input validation, chunking, embeddings, vector indexing, semantic retrieval, and judge evaluation using pytest. |
+| **Subsequent Judge Agents** | ⏳ Planned (M2.2–M2.4) | Accuracy Judge Agent, Hallucination Detection Agent, and Consistency Validation. |
 
 ## 📁 Project Structure
 
@@ -126,9 +134,13 @@ Verity/
 │
 ├── backend/
 │   ├── app/
+│   │   ├── agents/
+│   │   │   ├── llm_client.py           # Unified LLM provider client (OpenAI, Gemini, Local)
+│   │   │   └── relevance_judge.py      # Relevance Judge Agent (0-10 calibrated scale)
 │   │   ├── api/
 │   │   │   └── routes/
 │   │   │       ├── evaluation.py       # API endpoints (/evaluations/, /health)
+│   │   │       ├── judge.py            # Judge evaluation endpoints (/api/v1/judge/)
 │   │   │       └── retrieval.py        # Semantic retrieval API endpoints (/api/v1/retrieval/)
 │   │   ├── core/
 │   │   │   ├── config.py               # Settings (paths, DB URLs, model configs)
@@ -143,15 +155,18 @@ Verity/
 │   │   │   └── vector_store.py         # ChromaVectorStore wrapper with persistence
 │   │   ├── schemas/
 │   │   │   ├── evaluation.py           # Pydantic request & response schemas for submissions
+│   │   │   ├── judge.py                # Pydantic schemas for judge inputs, outputs & status
 │   │   │   └── retrieval.py            # Pydantic request & response schemas for retrieval
 │   │   ├── services/
-│   │   │   └── evaluation_service.py   # Database query and persistence business logic
+│   │   │   ├── evaluation_service.py   # Database query and persistence business logic
+│   │   │   └── orchestrator.py         # Evaluation Orchestrator (coordinates RAG & agents)
 │   │   └── main.py                     # FastAPI app creation, CORS middleware, lifespan
 │   ├── scripts/
 │   │   └── ingest_knowledge_base.py    # CLI script to ingest benchmark datasets into ChromaDB
 │   ├── tests/
 │   │   ├── test_evaluation.py          # 23 pytest tests for submission CRUD & validation
-│   │   └── test_rag.py                 # 12 pytest tests for chunking, embeddings, ChromaDB, & retrieval
+│   │   ├── test_rag.py                 # 12 pytest tests for chunking, embeddings, ChromaDB, & retrieval
+│   │   └── test_relevance_judge.py     # 13 pytest tests for relevance scoring, LLM judge & orchestration
 │   ├── requirements.txt                # Python backend dependencies
 │   └── .env.example                    # Example backend environment configuration
 │

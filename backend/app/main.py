@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.evaluation import router as evaluation_router
 from app.api.routes.retrieval import router as retrieval_router
+from app.api.routes.judge import router as judge_router
 from app.core.database import Base, engine
 
 
@@ -36,6 +37,13 @@ async def lifespan(app: FastAPI):
     so the database is never wiped on restart.
     """
     Base.metadata.create_all(bind=engine)
+    try:
+        with engine.connect() as conn:
+            cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(evaluation_submissions)").fetchall()]
+            if cols and "evaluation_result" not in cols:
+                conn.exec_driver_sql("ALTER TABLE evaluation_submissions ADD COLUMN evaluation_result TEXT")
+    except Exception:
+        pass
     yield
     # Any teardown code would go here (e.g., close connection pools)
 
@@ -72,6 +80,8 @@ app.add_middleware(
 app.include_router(evaluation_router, prefix="/api/v1")
 app.include_router(evaluation_router, prefix="", include_in_schema=False)
 app.include_router(retrieval_router, prefix="/api/v1")
+app.include_router(judge_router, prefix="/api/v1")
+app.include_router(judge_router, prefix="", include_in_schema=False)
 
 
 # ---------------------------------------------------------------------------

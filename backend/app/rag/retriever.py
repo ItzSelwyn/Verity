@@ -163,3 +163,14 @@ class SemanticRetriever:
             total_retrieved=len(passages),
             status=status,
         )
+
+
+_RETRIEVER_INSTANCE: Optional[SemanticRetriever] = None
+
+
+def get_semantic_retriever() -> SemanticRetriever:
+    """Singleton provider for the SemanticRetriever."""
+    global _RETRIEVER_INSTANCE
+    if _RETRIEVER_INSTANCE is None:
+        _RETRIEVER_INSTANCE = SemanticRetriever()
+    return _RETRIEVER_INSTANCE

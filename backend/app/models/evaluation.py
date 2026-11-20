@@ -42,6 +42,9 @@ class EvaluationSubmission(Base):
     # picked up by any evaluation agent yet.
     status = Column(String(20), nullable=False, default="pending")
 
+    # Serialized JSON containing multi-agent evaluation output & RAG evidence
+    evaluation_result = Column(Text, nullable=True)
+
     # Store timestamps in UTC so they are timezone-independent.
     created_at = Column(
         DateTime,

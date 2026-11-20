@@ -3,6 +3,7 @@ import type {
   EvaluationSubmitRequest,
   EvaluationResponse,
   PaginatedEvaluationsResponse,
+  OrchestratedEvaluationResult,
 } from '../types/evaluation';
 
 // Base URL comes from the Vite environment variable (set in .env.local)
@@ -46,6 +47,19 @@ export async function listEvaluations(
   const response = await api.get<PaginatedEvaluationsResponse>('/api/v1/evaluations/', {
     params: { page, page_size: pageSize },
   });
+  return response.data;
+}
+
+/**
+ * Run multi-agent evaluation on a stored submission.
+ * POST /api/v1/judge/submissions/{id}/evaluate
+ */
+export async function runSubmissionEvaluation(
+  id: number
+): Promise<OrchestratedEvaluationResult> {
+  const response = await api.post<OrchestratedEvaluationResult>(
+    `/api/v1/judge/submissions/${id}/evaluate`
+  );
   return response.data;
 }
 

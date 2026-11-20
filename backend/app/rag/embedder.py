@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 from app.core.config import EMBEDDING_MODEL_NAME
 
 _MODEL_INSTANCE: Union[SentenceTransformer, None] = None
+_SERVICE_INSTANCE: Union["EmbeddingService", None] = None
 
 
 def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME) -> SentenceTransformer:
@@ -21,6 +22,16 @@ def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME) -> SentenceTrans
     if _MODEL_INSTANCE is None:
         _MODEL_INSTANCE = SentenceTransformer(model_name)
     return _MODEL_INSTANCE
+
+
+def get_embedding_service() -> "EmbeddingService":
+    """
+    Lazy singleton provider for the EmbeddingService.
+    """
+    global _SERVICE_INSTANCE
+    if _SERVICE_INSTANCE is None:
+        _SERVICE_INSTANCE = EmbeddingService()
+    return _SERVICE_INSTANCE
 
 
 class EmbeddingService:

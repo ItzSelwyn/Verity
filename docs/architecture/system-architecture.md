@@ -104,10 +104,19 @@ The stack is the initial project design and may be revised after implementation 
 - **Semantic Retrieval Service (M1.4)**: Query embedding, top-k nearest neighbor search in cosine distance space, cosine similarity score calculation ($1.0 - \text{distance}$), similarity threshold filtering (0.25 minimum), and structured provenance packaging (`RetrievedEvidence`, `RetrievalPackage`).
 - **Test Suite**: Automated pytest suite of 35 tests verifying submission CRUD, validation edge cases, chunking behavior, embedding dimensions, vector store isolation, semantic retrieval, and API endpoints.
 
-### Planned for Milestone 2 (Multi-Agent Evaluation Layer)
-- **Multi-Agent Evaluation Pipeline (M2)**: Evaluation Orchestrator, Judge Agents (Relevance, Accuracy, Hallucination, Completeness), and Verdict Agent.
-- **Structured Evaluation Output (M2)**: Dimension scoring (0-10), contradiction detection, evidence grounding citation, and actionable verdict reports.
-- **Advanced Features (Subsequent Milestones)**: PDF/file uploads, document parsing, batch evaluation, and background job queueing.
+### Implemented in Milestone 2 (Multi-Agent Evaluation Layer)
+- **Relevance Judge Agent (M2.1)**: Specialized evaluator assessing prompt-response directness, intent fulfillment, and constraint compliance. Provides 0.0–10.0 score, categorical classification (`fully_relevant`, `mostly_relevant`, `partially_relevant`, `off_topic`, `unrelated`), addressed/missed key points, and explanatory reasoning.
+- **Dual Evaluation Engine (M2.1)**: Pluggable LLM-as-a-judge client (OpenAI-compatible & Gemini REST APIs) with a local deterministic fallback (sentence embeddings + lexical intent analysis) for offline execution.
+- **Evaluation Orchestrator (M2.1)**: Central service coordinating submission retrieval, context assembly (combining user source text and RAG-retrieved evidence), and judge dispatch.
+- **Judge API Endpoints (M2.1)**: `POST /api/v1/judge/relevance` for ad-hoc evaluations and `POST /api/v1/judge/submissions/{id}/evaluate` for stored submissions.
+- **Expanded Test Suite**: 48 automated tests covering input ingestion, RAG vector retrieval, and relevance judge evaluation.
+
+### Planned for subsequent Milestone 2 phases
+- **Accuracy Judge Agent (M2.2)**: Evaluates factual truth against reference answers and retrieved RAG evidence passages.
+- **Hallucination Detection Agent (M2.3)**: Breaks response into claims and identifies unsupported or contradicted statements.
+- **Agent Consistency & Validation (M2.4)**: Benchmark evaluation across TruthfulQA and SQuAD test suites.
+- **Completeness & Verdict Aggregation**: Synthesizes multidimensional scores with contradiction safeguards.
+- **Advanced Features**: PDF/file uploads, document parsing, batch evaluation, and background job queueing.
 
 ## 8. M1.1 findings summary
 
