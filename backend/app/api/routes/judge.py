@@ -11,6 +11,10 @@ from app.core.database import get_db
 from app.schemas.judge import (
     RelevanceJudgeInput,
     RelevanceJudgeOutput,
+    AccuracyJudgeInput,
+    AccuracyJudgeOutput,
+    HallucinationJudgeInput,
+    HallucinationJudgeOutput,
     OrchestratedEvaluationResult,
 )
 from app.services.orchestrator import get_evaluation_orchestrator, EvaluationOrchestrator
@@ -46,6 +50,68 @@ def evaluate_relevance(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Relevance evaluation encountered an unexpected error: {str(e)}",
+        )
+
+
+@router.post(
+    "/accuracy",
+    response_model=AccuracyJudgeOutput,
+    status_code=status.HTTP_200_OK,
+    summary="Evaluate Factual Accuracy",
+    description="Evaluates whether an AI-generated response is factually supported or contradicted by reference evidence.",
+)
+def evaluate_accuracy(
+    input_data: AccuracyJudgeInput,
+    orchestrator: EvaluationOrchestrator = Depends(get_evaluation_orchestrator),
+) -> AccuracyJudgeOutput:
+    """
+    Directly evaluates the factual correctness of an ad-hoc AI response
+    against reference answers, source text, and RAG evidence.
+    """
+    try:
+        return orchestrator.evaluate_accuracy(
+            question=input_data.question,
+            ai_response=input_data.ai_response,
+            reference_answer=input_data.reference_answer,
+            source_document=input_data.source_document,
+            retrieved_evidence=input_data.retrieved_evidence,
+        )
+    except Exception as e:
+        logger.error(f"Accuracy evaluation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Accuracy evaluation encountered an unexpected error: {str(e)}",
+        )
+
+
+@router.post(
+    "/hallucination",
+    response_model=HallucinationJudgeOutput,
+    status_code=status.HTTP_200_OK,
+    summary="Detect Hallucinations & Verify Claims",
+    description="Deconstructs an AI response into atomic claims and cross-references each claim against reference evidence.",
+)
+def evaluate_hallucination(
+    input_data: HallucinationJudgeInput,
+    orchestrator: EvaluationOrchestrator = Depends(get_evaluation_orchestrator),
+) -> HallucinationJudgeOutput:
+    """
+    Directly evaluates hallucination risk by verifying individual atomic claims
+    against reference answers, source text, and RAG evidence.
+    """
+    try:
+        return orchestrator.evaluate_hallucination(
+            question=input_data.question,
+            ai_response=input_data.ai_response,
+            reference_answer=input_data.reference_answer,
+            source_document=input_data.source_document,
+            retrieved_evidence=input_data.retrieved_evidence,
+        )
+    except Exception as e:
+        logger.error(f"Hallucination detection failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Hallucination detection encountered an unexpected error: {str(e)}",
         )
 
 

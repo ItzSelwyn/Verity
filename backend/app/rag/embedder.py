@@ -17,10 +17,14 @@ def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME) -> SentenceTrans
     """
     Lazy singleton loader for the SentenceTransformer embedding model.
     Avoids loading model weights during module import.
+    Uses local_files_only=True first to avoid network timeout delays when offline.
     """
     global _MODEL_INSTANCE
     if _MODEL_INSTANCE is None:
-        _MODEL_INSTANCE = SentenceTransformer(model_name)
+        try:
+            _MODEL_INSTANCE = SentenceTransformer(model_name, local_files_only=True)
+        except Exception:
+            _MODEL_INSTANCE = SentenceTransformer(model_name)
     return _MODEL_INSTANCE
 
 

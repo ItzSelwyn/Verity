@@ -12,11 +12,19 @@ from sqlalchemy.orm import Session
 from app.schemas.judge import (
     RelevanceJudgeInput,
     RelevanceJudgeOutput,
+    AccuracyJudgeInput,
+    AccuracyJudgeOutput,
+    AccuracyClassification,
+    HallucinationJudgeInput,
+    HallucinationJudgeOutput,
+    HallucinationSeverity,
     RetrievedEvidenceItem,
     OrchestratedEvaluationResult,
     EvaluationRunStatus,
 )
 from app.agents.relevance_judge import RelevanceJudgeAgent
+from app.agents.accuracy_judge import AccuracyJudgeAgent
+from app.agents.hallucination_judge import HallucinationDetectionAgent
 from app.services.evaluation_service import get_evaluation
 from app.rag.retriever import get_semantic_retriever
 
@@ -29,8 +37,15 @@ class EvaluationOrchestrator:
     Manages context preparation, RAG evidence retrieval, and judge agent execution.
     """
 
-    def __init__(self, relevance_judge: Optional[RelevanceJudgeAgent] = None):
+    def __init__(
+        self,
+        relevance_judge: Optional[RelevanceJudgeAgent] = None,
+        accuracy_judge: Optional[AccuracyJudgeAgent] = None,
+        hallucination_judge: Optional[HallucinationDetectionAgent] = None,
+    ):
         self.relevance_judge = relevance_judge or RelevanceJudgeAgent()
+        self.accuracy_judge = accuracy_judge or AccuracyJudgeAgent()
+        self.hallucination_judge = hallucination_judge or HallucinationDetectionAgent()
 
     def evaluate_relevance(
         self,
@@ -47,6 +62,47 @@ class EvaluationOrchestrator:
             context=context,
         )
         return self.relevance_judge.evaluate(judge_input)
+
+    def evaluate_accuracy(
+        self,
+        question: str,
+        ai_response: str,
+        reference_answer: Optional[str] = None,
+        source_document: Optional[str] = None,
+        retrieved_evidence: Optional[list] = None,
+    ) -> AccuracyJudgeOutput:
+        """
+        Directly evaluates factual accuracy for an ad-hoc question and response pair
+        against reference answers, source text, and RAG evidence.
+        """
+        judge_input = AccuracyJudgeInput(
+            question=question,
+            ai_response=ai_response,
+            reference_answer=reference_answer,
+            source_document=source_document,
+            retrieved_evidence=retrieved_evidence or [],
+        )
+        return self.accuracy_judge.evaluate(judge_input)
+
+    def evaluate_hallucination(
+        self,
+        question: str,
+        ai_response: str,
+        reference_answer: Optional[str] = None,
+        source_document: Optional[str] = None,
+        retrieved_evidence: Optional[list] = None,
+    ) -> HallucinationJudgeOutput:
+        """
+        Directly evaluates fine-grained hallucination risk and claim-level grounding.
+        """
+        judge_input = HallucinationJudgeInput(
+            question=question,
+            ai_response=ai_response,
+            reference_answer=reference_answer,
+            source_document=source_document,
+            retrieved_evidence=retrieved_evidence or [],
+        )
+        return self.hallucination_judge.evaluate(judge_input)
 
     def evaluate_submission(
         self,
@@ -107,13 +163,66 @@ class EvaluationOrchestrator:
                 context=full_context,
             )
 
+            # 3. Run Accuracy Judge Agent (M2.2)
+            accuracy_output = self.evaluate_accuracy(
+                question=submission.question,
+                ai_response=submission.ai_response,
+                reference_answer=submission.reference_answer,
+                source_document=submission.source_document,
+                retrieved_evidence=retrieved_items,
+            )
+
+            # 4. Run Hallucination Detection Agent (M2.3)
+            hallucination_output = self.evaluate_hallucination(
+                question=submission.question,
+                ai_response=submission.ai_response,
+                reference_answer=submission.reference_answer,
+                source_document=submission.source_document,
+                retrieved_evidence=retrieved_items,
+            )
+
+            # Score aggregation & critical contradiction safeguard
+            # In M2.3: Weighted composite S = 0.30*Relevance + 0.40*Accuracy + 0.30*(10.0 - Hallucination)
+            faithfulness_score = max(0.0, 10.0 - hallucination_output.score)
+            composite_score = round(
+                relevance_output.score * 0.30 + accuracy_output.score * 0.40 + faithfulness_score * 0.30,
+                2,
+            )
+
+            # Critical Contradiction Safeguard: if direct contradiction occurs, cap overall score
+            if (
+                accuracy_output.classification == AccuracyClassification.CONTRADICTORY
+                or hallucination_output.severity == HallucinationSeverity.SEVERE
+            ):
+                composite_score = min(composite_score, 1.5)
+                verdict = f"Critical Contradiction Detected: {accuracy_output.reasoning}"
+            elif (
+                hallucination_output.hallucination_detected
+                and hallucination_output.severity in (HallucinationSeverity.HIGH, HallucinationSeverity.MODERATE)
+            ):
+                verdict = f"Hallucination Risk Detected: {hallucination_output.reasoning}"
+            elif (
+                accuracy_output.classification == AccuracyClassification.FULLY_ACCURATE
+                and relevance_output.score >= 9.0
+                and not hallucination_output.hallucination_detected
+            ):
+                verdict = "Verified Reliable: Response is fully relevant, factual, and backed by reference evidence with zero hallucination."
+            else:
+                verdict = (
+                    f"Relevance: {relevance_output.classification.value} ({relevance_output.score}/10) | "
+                    f"Accuracy: {accuracy_output.classification.value} ({accuracy_output.score}/10) | "
+                    f"Hallucination: {hallucination_output.severity.value.title()} ({hallucination_output.score}/10)"
+                )
+
             result = OrchestratedEvaluationResult(
                 submission_id=str(submission.id),
                 status=EvaluationRunStatus.COMPLETED,
                 relevance=relevance_output,
+                accuracy=accuracy_output,
+                hallucination=hallucination_output,
                 retrieved_evidence=retrieved_items,
-                overall_score=relevance_output.score,
-                verdict=f"Relevance: {relevance_output.classification.value} ({relevance_output.score}/10)",
+                overall_score=composite_score,
+                verdict=verdict,
                 created_at=datetime.now(timezone.utc).isoformat(),
             )
 

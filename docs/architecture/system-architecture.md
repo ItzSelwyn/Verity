@@ -106,14 +106,14 @@ The stack is the initial project design and may be revised after implementation 
 
 ### Implemented in Milestone 2 (Multi-Agent Evaluation Layer)
 - **Relevance Judge Agent (M2.1)**: Specialized evaluator assessing prompt-response directness, intent fulfillment, and constraint compliance. Provides 0.0–10.0 score, categorical classification (`fully_relevant`, `mostly_relevant`, `partially_relevant`, `off_topic`, `unrelated`), addressed/missed key points, and explanatory reasoning.
-- **Dual Evaluation Engine (M2.1)**: Pluggable LLM-as-a-judge client (OpenAI-compatible & Gemini REST APIs) with a local deterministic fallback (sentence embeddings + lexical intent analysis) for offline execution.
-- **Evaluation Orchestrator (M2.1)**: Central service coordinating submission retrieval, context assembly (combining user source text and RAG-retrieved evidence), and judge dispatch.
-- **Judge API Endpoints (M2.1)**: `POST /api/v1/judge/relevance` for ad-hoc evaluations and `POST /api/v1/judge/submissions/{id}/evaluate` for stored submissions.
-- **Expanded Test Suite**: 48 automated tests covering input ingestion, RAG vector retrieval, and relevance judge evaluation.
+- **Accuracy Judge Agent (M2.2)**: Specialized factuality evaluator measuring response correctness against ground-truth reference answers and/or retrieved RAG chunks from the knowledge base. Features calibrated 0.0–10.0 scoring (`fully_accurate`, `mostly_accurate`, `partially_accurate`, `largely_inaccurate`, `contradictory`), claim-level classification (`correct_claims`, `contradictory_claims`), critical contradiction detection and scoring safeguards ($S \le 1.0$), and structured citations (`EvidenceCitation`).
+- **Dual Evaluation Engine (M2.1 & M2.2)**: Pluggable LLM-as-a-judge client (OpenAI-compatible & Gemini REST APIs) with a local deterministic fallback (sentence embeddings + lexical intent analysis + contrastive discourse extraction) for offline execution.
+- **Evaluation Orchestrator (M2.1 & M2.2)**: Central service coordinating submission retrieval, RAG evidence retrieval from ChromaDB, multi-agent dispatch (Relevance Judge + Accuracy Judge), composite quality score calculation ($S = 0.45R + 0.55A$), verdict generation, and persistent database storage.
+- **Judge API Endpoints**: `POST /api/v1/judge/relevance`, `POST /api/v1/judge/accuracy`, and `POST /api/v1/judge/submissions/{id}/evaluate`.
+- **Expanded Test Suite**: 57 automated unit and integration tests covering submission CRUD, RAG vector retrieval, relevance judge evaluation, accuracy judge evaluation, and orchestration.
 
 ### Planned for subsequent Milestone 2 phases
-- **Accuracy Judge Agent (M2.2)**: Evaluates factual truth against reference answers and retrieved RAG evidence passages.
-- **Hallucination Detection Agent (M2.3)**: Breaks response into claims and identifies unsupported or contradicted statements.
+- **Hallucination Detection Agent (M2.3)**: Breaks response into atomic claims and flags unsupported or fabricated statements.
 - **Agent Consistency & Validation (M2.4)**: Benchmark evaluation across TruthfulQA and SQuAD test suites.
 - **Completeness & Verdict Aggregation**: Synthesizes multidimensional scores with contradiction safeguards.
 - **Advanced Features**: PDF/file uploads, document parsing, batch evaluation, and background job queueing.

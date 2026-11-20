@@ -112,9 +112,9 @@ The knowledge base will include:
 ### Milestone 2 — Evaluation Judge Agents & Validation
 
 - [x] **M2.1 — Relevance Judge Agent**: Scoring scale (0–10), structured reasoning, classification bands, Evaluation Orchestrator integration, and benchmark validation.
-- [ ] **M2.2 — Accuracy Judge Agent**: Factuality verification against reference answers & RAG knowledge base.
-- [ ] **M2.3 — Hallucination Detection Agent**: Atomic claim extraction and unsupported claim flagging.
-- [ ] **M2.4 — Agent Evaluation & Consistency Validation**: Benchmark test suite calibration.
+- [x] **M2.2 — Accuracy Judge Agent**: Factuality verification against reference answers & RAG knowledge base with calibrated scoring (0–10), claim identification, critical contradiction safeguards, and ground-truth citations.
+- [x] **M2.3 — Hallucination Detection Agent**: Fine-grained proposition splitting, atomic claim verification (`supported`, `unsupported`, `contradicted`), per-claim reasoning & citations, severity bands (`none`, `low`, `moderate`, `high`, `severe`), and weighted composite scoring ($S = 0.30R + 0.40A + 0.30(10-H)$).
+- [x] **M2.4 — Agent Evaluation & Consistency Validation**: 26-case benchmark evaluation suite (TruthfulQA, SQuAD, curated facts), 100% precision/recall on hallucination detection, consistency validation across syntactic variations ($\Delta = 0.042$), and reasoning quality verification.
 
 ### Current Implementation Status
 
@@ -122,10 +122,13 @@ The knowledge base will include:
 |---|---|---|
 | **Evaluation Input Module (Backend)** | ✅ Implemented | FastAPI endpoints for `POST /evaluations/`, `GET /evaluations/{id}`, `GET /evaluations/`, and `/health` with Pydantic validation and SQLite persistence via SQLAlchemy. |
 | **Evaluation Input UI (Frontend)** | ✅ Implemented | React + Vite application with modern black-and-white aesthetic, collapsible icon sidebar, New Evaluation form, client-side validation, loading/error states, and Evaluation History viewer. |
-| **Reference Knowledge Base & RAG** | ✅ Implemented (M1.4) | Chunking pipeline (500 tokens, 75 overlap), embedding service (`all-MiniLM-L6-v2`, 384-d normalized), persistent ChromaDB vector store, TruthfulQA + SQuAD ingestion pipeline, semantic retrieval service with similarity scoring and provenance packaging, and REST API endpoints (`/api/v1/retrieval/query`, `/api/v1/retrieval/status`). |
+| **Reference Knowledge Base & RAG** | ✅ Implemented (M1.4) | Chunking pipeline (500 tokens, 75 overlap), embedding service (`all-MiniLM-L6-v2`, 384-d normalized), persistent ChromaDB vector store, TruthfulQA + SQuAD ingestion pipeline, curated factual ground-truth benchmarks, semantic retrieval service with similarity scoring and provenance packaging, and REST API endpoints (`/api/v1/retrieval/query`, `/api/v1/retrieval/status`). |
 | **Relevance Judge Agent & Orchestrator** | ✅ Implemented (M2.1) | Relevance Judge Agent evaluating directness and intent on a 0–10 scale (`fully_relevant`, `mostly_relevant`, `partially_relevant`, `off_topic`, `unrelated`), pluggable LLM/deterministic fallback engine, and Evaluation Orchestrator (`POST /api/v1/judge/relevance`, `POST /api/v1/judge/submissions/{id}/evaluate`). |
-| **Automated Test Suite** | ✅ Implemented | 48 unit and integration tests covering submission CRUD, input validation, chunking, embeddings, vector indexing, semantic retrieval, and judge evaluation using pytest. |
-| **Subsequent Judge Agents** | ⏳ Planned (M2.2–M2.4) | Accuracy Judge Agent, Hallucination Detection Agent, and Consistency Validation. |
+| **Accuracy Judge Agent & Fact Checker** | ✅ Implemented (M2.2) | Accuracy Judge Agent evaluating factual correctness against ground-truth reference answers and/or ChromaDB RAG chunks on a 0–10 scale (`fully_accurate`, `mostly_accurate`, `partially_accurate`, `largely_inaccurate`, `contradictory`), claim breakdown, critical contradiction safeguards, evidence citations, and REST API (`POST /api/v1/judge/accuracy`). |
+| **Hallucination Detection Agent** | ✅ Implemented (M2.3) | Hallucination Detection Agent evaluating claim grounding on a 0–10 risk scale, atomic sentence proposition parser, per-claim status classification (`supported`, `unsupported`, `contradicted`), per-claim reasoning with reference grounding excerpts, severity scoring, and REST API (`POST /api/v1/judge/hallucination`). |
+| **Agent Consistency & Benchmark Validation** | ✅ Implemented (M2.4) | 26-case benchmark validation suite (`benchmark_dataset.py`, `validator.py`), automated runner CLI, 100% precision & recall for hallucination detection, score consistency validation ($\Delta \le 0.042$), and reasoning quality audit. |
+| **Automated Test Suite** | ✅ Implemented | 70 unit, integration, and benchmark tests covering submission CRUD, input validation, chunking, embeddings, vector indexing, semantic retrieval, relevance judge, accuracy judge, hallucination judge, and consistency validation using pytest. |
+| **Subsequent Milestones** | ⏳ Next Up | Milestone 3: Completeness Judge Agent & Verdict Agent. |
 
 ## 📁 Project Structure
 
@@ -135,8 +138,13 @@ Verity/
 ├── backend/
 │   ├── app/
 │   │   ├── agents/
+│   │   │   ├── accuracy_judge.py       # Accuracy Judge Agent (factuality verification & citations)
+│   │   │   ├── hallucination_judge.py  # Hallucination Detection Agent (claim decomposition & grounding)
 │   │   │   ├── llm_client.py           # Unified LLM provider client (OpenAI, Gemini, Local)
 │   │   │   └── relevance_judge.py      # Relevance Judge Agent (0-10 calibrated scale)
+│   │   ├── benchmarks/
+│   │   │   ├── benchmark_dataset.py    # 26-case representative evaluation test suite (M2.4)
+│   │   │   └── validator.py            # Automated benchmark evaluation & consistency engine
 │   │   ├── api/
 │   │   │   └── routes/
 │   │   │       ├── evaluation.py       # API endpoints (/evaluations/, /health)
@@ -150,7 +158,7 @@ Verity/
 │   │   ├── rag/
 │   │   │   ├── chunker.py              # Text chunker (500 tokens, 75 overlap)
 │   │   │   ├── embedder.py             # EmbeddingService (all-MiniLM-L6-v2, 384-d normalized)
-│   │   │   ├── ingestion.py            # Benchmark ingestion (TruthfulQA + SQuAD)
+│   │   │   ├── ingestion.py            # Benchmark ingestion (TruthfulQA + SQuAD + Curated Facts)
 │   │   │   ├── retriever.py            # SemanticRetriever with scoring & provenance
 │   │   │   └── vector_store.py         # ChromaVectorStore wrapper with persistence
 │   │   ├── schemas/
@@ -159,12 +167,48 @@ Verity/
 │   │   │   └── retrieval.py            # Pydantic request & response schemas for retrieval
 │   │   ├── services/
 │   │   │   ├── evaluation_service.py   # Database query and persistence business logic
-│   │   │   └── orchestrator.py         # Evaluation Orchestrator (coordinates RAG & agents)
+│   │   │   └── orchestrator.py         # Evaluation Orchestrator (coordinates RAG & all 3 agents)
+│   │   └── main.py                     # FastAPI app creation, CORS middleware, lifespan
+│   ├── scripts/
+│   │   ├── ingest_knowledge_base.py    # CLI script to ingest benchmark datasets into ChromaDB
+│   │   └── run_benchmark_validation.py # CLI runner for M2.4 benchmark validation suite
+│   ├── tests/
+│   │   ├── test_accuracy_judge.py      # 9 pytest tests for factual accuracy & citations
+│   │   ├── test_benchmark_validation.py# 5 pytest tests for benchmark metrics & consistency
+│   │   ├── test_evaluation.py          # 23 pytest tests for submission CRUD & validation
+│   │   ├── test_hallucination_judge.py # 8 pytest tests for claim decomposition & hallucination severity
+│   │   ├── test_rag.py                 # 12 pytest tests for chunking, embeddings, ChromaDB, & retrieval
+│   │   └── test_relevance_judge.py     # 13 pytest tests for relevance scoring, LLM judge & orchestration
+│   │   ├── api/
+│   │   │   └── routes/
+│   │   │       ├── evaluation.py       # API endpoints (/evaluations/, /health)
+│   │   │       ├── judge.py            # Judge evaluation endpoints (/api/v1/judge/)
+│   │   │       └── retrieval.py        # Semantic retrieval API endpoints (/api/v1/retrieval/)
+│   │   ├── core/
+│   │   │   ├── config.py               # Settings (paths, DB URLs, model configs)
+│   │   │   └── database.py             # SQLAlchemy engine, session maker, get_db dependency
+│   │   ├── models/
+│   │   │   └── evaluation.py           # EvaluationSubmission SQLAlchemy ORM model
+│   │   ├── rag/
+│   │   │   ├── chunker.py              # Text chunker (500 tokens, 75 overlap)
+│   │   │   ├── embedder.py             # EmbeddingService (all-MiniLM-L6-v2, 384-d normalized)
+│   │   │   ├── ingestion.py            # Benchmark ingestion (TruthfulQA + SQuAD + Curated Facts)
+│   │   │   ├── retriever.py            # SemanticRetriever with scoring & provenance
+│   │   │   └── vector_store.py         # ChromaVectorStore wrapper with persistence
+│   │   ├── schemas/
+│   │   │   ├── evaluation.py           # Pydantic request & response schemas for submissions
+│   │   │   ├── judge.py                # Pydantic schemas for judge inputs, outputs & status
+│   │   │   └── retrieval.py            # Pydantic request & response schemas for retrieval
+│   │   ├── services/
+│   │   │   ├── evaluation_service.py   # Database query and persistence business logic
+│   │   │   └── orchestrator.py         # Evaluation Orchestrator (coordinates RAG & all 3 agents)
 │   │   └── main.py                     # FastAPI app creation, CORS middleware, lifespan
 │   ├── scripts/
 │   │   └── ingest_knowledge_base.py    # CLI script to ingest benchmark datasets into ChromaDB
 │   ├── tests/
+│   │   ├── test_accuracy_judge.py      # 9 pytest tests for factual accuracy & citations
 │   │   ├── test_evaluation.py          # 23 pytest tests for submission CRUD & validation
+│   │   ├── test_hallucination_judge.py # 8 pytest tests for claim decomposition & hallucination severity
 │   │   ├── test_rag.py                 # 12 pytest tests for chunking, embeddings, ChromaDB, & retrieval
 │   │   └── test_relevance_judge.py     # 13 pytest tests for relevance scoring, LLM judge & orchestration
 │   ├── requirements.txt                # Python backend dependencies

@@ -12,6 +12,8 @@ import {
   Zap,
   Database,
   Check,
+  AlertTriangle,
+  X,
 } from '../components/icons';
 import {
   listEvaluations,
@@ -125,6 +127,40 @@ function getRelevanceBadgeStyle(classification?: string): React.CSSProperties {
     case 'off_topic':
     case 'unrelated':
       return { backgroundColor: '#ffffff', color: '#09090b', border: '1px solid #09090b' };
+    default:
+      return { backgroundColor: '#f4f4f5', color: '#71717a' };
+  }
+}
+
+function getAccuracyBadgeStyle(classification?: string): React.CSSProperties {
+  switch (classification) {
+    case 'fully_accurate':
+      return { backgroundColor: '#09090b', color: '#ffffff' };
+    case 'mostly_accurate':
+      return { backgroundColor: '#27272a', color: '#ffffff' };
+    case 'partially_accurate':
+      return { backgroundColor: '#f4f4f5', color: '#09090b', border: '1px solid #d4d4d8' };
+    case 'largely_inaccurate':
+      return { backgroundColor: '#ffffff', color: '#09090b', border: '1px solid #71717a' };
+    case 'contradictory':
+      return { backgroundColor: '#ffffff', color: '#09090b', border: '2px solid #09090b', fontWeight: '800' };
+    default:
+      return { backgroundColor: '#f4f4f5', color: '#71717a' };
+  }
+}
+
+function getHallucinationBadgeStyle(severity?: string): React.CSSProperties {
+  switch (severity) {
+    case 'none':
+      return { backgroundColor: '#09090b', color: '#ffffff' };
+    case 'low':
+      return { backgroundColor: '#27272a', color: '#ffffff' };
+    case 'moderate':
+      return { backgroundColor: '#f4f4f5', color: '#09090b', border: '1px solid #d4d4d8' };
+    case 'high':
+      return { backgroundColor: '#ffffff', color: '#09090b', border: '1px solid #71717a' };
+    case 'severe':
+      return { backgroundColor: '#ffffff', color: '#09090b', border: '2px solid #09090b', fontWeight: '800' };
     default:
       return { backgroundColor: '#f4f4f5', color: '#71717a' };
   }
@@ -314,6 +350,294 @@ const resultStyles: Record<string, React.CSSProperties> = {
     border: '1px solid #e4e4e7',
     padding: '4px 10px',
     borderRadius: '6px',
+  },
+  overallScoreBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '24px',
+    padding: '16px 20px',
+    backgroundColor: '#fafafa',
+    border: '1px solid #e4e4e7',
+    borderRadius: '10px',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+  },
+  overallScoreLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    borderRight: '1px solid #e4e4e7',
+    paddingRight: '24px',
+    minWidth: '120px',
+  },
+  overallScoreLabel: {
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.8px',
+    color: '#71717a',
+  },
+  overallScoreValue: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '4px',
+    marginTop: '4px',
+  },
+  overallScoreNumber: {
+    fontSize: '32px',
+    fontWeight: '900',
+    color: '#09090b',
+    lineHeight: 1,
+  },
+  overallScoreMax: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#71717a',
+  },
+  overallScoreRight: {
+    flex: 1,
+    minWidth: '220px',
+  },
+  verdictLabel: {
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.8px',
+    color: '#71717a',
+    marginBottom: '4px',
+  },
+  verdictText: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#09090b',
+    lineHeight: '1.5',
+    margin: 0,
+  },
+  contradictionAlertBox: {
+    backgroundColor: '#ffffff',
+    border: '2px solid #09090b',
+    borderLeft: '5px solid #09090b',
+    borderRadius: '8px',
+    padding: '14px 16px',
+    marginTop: '16px',
+  },
+  contradictionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '6px',
+  },
+  contradictionTitle: {
+    fontSize: '12px',
+    fontWeight: '800',
+    letterSpacing: '0.6px',
+    color: '#09090b',
+  },
+  contradictionDesc: {
+    fontSize: '13px',
+    color: '#52525b',
+    margin: '0 0 10px 0',
+    lineHeight: '1.4',
+  },
+  tagContradiction: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '12px',
+    fontWeight: '700',
+    backgroundColor: '#09090b',
+    color: '#ffffff',
+    padding: '4px 10px',
+    borderRadius: '6px',
+  },
+  citationList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    marginTop: '8px',
+  },
+  citationCard: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '6px',
+    padding: '12px 14px',
+  },
+  citationHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '6px',
+    flexWrap: 'wrap',
+    gap: '6px',
+  },
+  citationRelationSupports: {
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.5px',
+    backgroundColor: '#09090b',
+    color: '#ffffff',
+    padding: '2px 8px',
+    borderRadius: '4px',
+  },
+  citationRelationContradicts: {
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.5px',
+    backgroundColor: '#ffffff',
+    color: '#09090b',
+    border: '1.5px solid #09090b',
+    padding: '2px 8px',
+    borderRadius: '4px',
+  },
+  citationSourceId: {
+    fontSize: '11px',
+    color: '#71717a',
+    fontWeight: '500',
+  },
+  citationExcerpt: {
+    fontSize: '13px',
+    lineHeight: '1.5',
+    color: '#27272a',
+    fontStyle: 'italic',
+    borderLeft: '2px solid #e4e4e7',
+    paddingLeft: '10px',
+  },
+  detectedAlertBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.5px',
+    backgroundColor: '#09090b',
+    color: '#ffffff',
+    padding: '3px 8px',
+    borderRadius: '100px',
+  },
+  detectedCleanBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '11px',
+    fontWeight: '700',
+    letterSpacing: '0.5px',
+    backgroundColor: '#f4f4f5',
+    color: '#09090b',
+    border: '1px solid #d4d4d8',
+    padding: '3px 8px',
+    borderRadius: '100px',
+  },
+  claimCountsSummary: {
+    display: 'flex',
+    gap: '10px',
+    marginBottom: '16px',
+    flexWrap: 'wrap',
+  },
+  claimCountPill: {
+    fontSize: '11px',
+    fontWeight: '700',
+    letterSpacing: '0.5px',
+    padding: '4px 10px',
+    borderRadius: '6px',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e4e4e7',
+    color: '#09090b',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  claimVerificationList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    marginTop: '10px',
+  },
+  claimCard: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '8px',
+    padding: '14px 16px',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+  },
+  claimCardContradicted: {
+    backgroundColor: '#ffffff',
+    border: '1.5px solid #09090b',
+    borderRadius: '8px',
+    padding: '14px 16px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+  },
+  claimCardUnsupported: {
+    backgroundColor: '#ffffff',
+    border: '1px dashed #a1a1aa',
+    borderRadius: '8px',
+    padding: '14px 16px',
+  },
+  claimHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '8px',
+    flexWrap: 'wrap',
+    gap: '8px',
+  },
+  claimStatusSupported: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.5px',
+    backgroundColor: '#09090b',
+    color: '#ffffff',
+    padding: '3px 9px',
+    borderRadius: '4px',
+  },
+  claimStatusUnsupported: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '11px',
+    fontWeight: '700',
+    letterSpacing: '0.5px',
+    backgroundColor: '#f4f4f5',
+    color: '#18181b',
+    border: '1px solid #d4d4d8',
+    padding: '3px 9px',
+    borderRadius: '4px',
+  },
+  claimStatusContradicted: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '11px',
+    fontWeight: '800',
+    letterSpacing: '0.5px',
+    backgroundColor: '#ffffff',
+    color: '#09090b',
+    border: '1.5px solid #09090b',
+    padding: '3px 9px',
+    borderRadius: '4px',
+  },
+  claimText: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#09090b',
+    margin: '0 0 6px 0',
+    lineHeight: '1.5',
+  },
+  claimExplanation: {
+    fontSize: '13px',
+    color: '#52525b',
+    margin: '0 0 8px 0',
+    lineHeight: '1.5',
+  },
+  claimEvidenceExcerpt: {
+    fontSize: '12.5px',
+    lineHeight: '1.5',
+    color: '#27272a',
+    fontStyle: 'italic',
+    borderLeft: '2.5px solid #09090b',
+    paddingLeft: '10px',
+    backgroundColor: '#fafafa',
+    padding: '6px 10px',
+    borderRadius: '0 4px 4px 0',
   },
   evidenceIntro: {
     fontSize: '13px',
@@ -710,11 +1034,11 @@ const EvaluationHistoryPage: React.FC = () => {
                   <div>
                     <div style={resultStyles.resultsPill}>
                       <Zap size={13} color="#09090b" />
-                      <span>MILESTONE 2.1 EVALUATION REPORT</span>
+                      <span>MILESTONE 2.3 EVALUATION REPORT</span>
                     </div>
                     <h2 style={resultStyles.resultsTitle}>Evaluation Results</h2>
                     <p style={resultStyles.resultsSubtitle}>
-                      Calculated by Relevance Judge Agent & Knowledge Base Retrieval
+                      Calculated by Relevance, Accuracy & Hallucination Detection Agents & Knowledge Base Retrieval
                     </p>
                   </div>
                   <button
@@ -729,6 +1053,28 @@ const EvaluationHistoryPage: React.FC = () => {
                     <span>{evaluating ? 'Evaluating…' : 'Re-run Evaluation'}</span>
                   </button>
                 </div>
+
+                {/* Overall Composite Score Banner */}
+                {detail.evaluation_result.overall_score !== undefined &&
+                  detail.evaluation_result.overall_score !== null && (
+                    <div style={resultStyles.overallScoreBanner}>
+                      <div style={resultStyles.overallScoreLeft}>
+                        <span style={resultStyles.overallScoreLabel}>COMPOSITE SCORE</span>
+                        <div style={resultStyles.overallScoreValue}>
+                          <span style={resultStyles.overallScoreNumber}>
+                            {detail.evaluation_result.overall_score.toFixed(1)}
+                          </span>
+                          <span style={resultStyles.overallScoreMax}>/ 10.0</span>
+                        </div>
+                      </div>
+                      <div style={resultStyles.overallScoreRight}>
+                        <div style={resultStyles.verdictLabel}>VERDICT</div>
+                        <p style={resultStyles.verdictText}>
+                          {detail.evaluation_result.verdict || 'Evaluation completed'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                 {/* Relevance Judge Card */}
                 {detail.evaluation_result.relevance && (
@@ -800,6 +1146,261 @@ const EvaluationHistoryPage: React.FC = () => {
                             </div>
                           </div>
                         )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Accuracy Judge Card (Milestone 2.2) */}
+                {detail.evaluation_result.accuracy && (
+                  <div style={resultStyles.card}>
+                    <div style={resultStyles.cardHeader}>
+                      <div style={resultStyles.cardBadgeGroup}>
+                        <span style={resultStyles.cardTypeTag}>ACCURACY JUDGE AGENT</span>
+                        <span
+                          style={{
+                            ...resultStyles.classificationBadge,
+                            ...getAccuracyBadgeStyle(detail.evaluation_result.accuracy.classification),
+                          }}
+                        >
+                          {detail.evaluation_result.accuracy.classification.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div style={resultStyles.scoreBox}>
+                        <span style={resultStyles.scoreNumber}>
+                          {detail.evaluation_result.accuracy.score.toFixed(1)}
+                        </span>
+                        <span style={resultStyles.scoreMax}>/ 10.0</span>
+                      </div>
+                    </div>
+
+                    <div style={resultStyles.metaInfoRow}>
+                      <span style={resultStyles.metaPill}>
+                        Confidence: {detail.evaluation_result.accuracy.confidence.toUpperCase()}
+                      </span>
+                      <span style={resultStyles.metaPill}>
+                        Model: {detail.evaluation_result.accuracy.evaluator_model}
+                      </span>
+                    </div>
+
+                    <div style={resultStyles.reasoningBox}>
+                      <h5 style={resultStyles.sectionSubtitle}>Assessment Reasoning</h5>
+                      <p style={resultStyles.reasoningText}>
+                        {detail.evaluation_result.accuracy.reasoning}
+                      </p>
+                    </div>
+
+                    {/* Contradictory Claims Alert */}
+                    {(detail.evaluation_result.accuracy.contradictory_claims?.length ?? 0) > 0 && (
+                      <div style={resultStyles.contradictionAlertBox}>
+                        <div style={resultStyles.contradictionHeader}>
+                          <AlertTriangle size={15} color="#09090b" strokeWidth={2.5} />
+                          <span style={resultStyles.contradictionTitle}>
+                            CRITICAL FACTUAL CONTRADICTION DETECTED
+                          </span>
+                        </div>
+                        <p style={resultStyles.contradictionDesc}>
+                          The candidate response asserts claims that are directly disproven or contradicted by the reference knowledge base:
+                        </p>
+                        <div style={resultStyles.tagRow}>
+                          {detail.evaluation_result.accuracy.contradictory_claims.map((claim, idx) => (
+                            <span key={idx} style={resultStyles.tagContradiction}>
+                              <X size={12} strokeWidth={2.5} />
+                              <span>{claim}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verified Factual Claims */}
+                    {(detail.evaluation_result.accuracy.correct_claims?.length ?? 0) > 0 && (
+                      <div style={{ marginTop: '14px' }}>
+                        <span style={resultStyles.pointGroupLabel}>Verified Factual Claims:</span>
+                        <div style={resultStyles.tagRow}>
+                          {detail.evaluation_result.accuracy.correct_claims.map((claim, idx) => (
+                            <span key={idx} style={resultStyles.tagAddressed}>
+                              <Check size={12} strokeWidth={2.5} />
+                              <span>{claim}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Grounding & Evidence Citations */}
+                    {(detail.evaluation_result.accuracy.supporting_evidence?.length ?? 0) > 0 && (
+                      <div style={{ marginTop: '16px' }}>
+                        <span style={resultStyles.pointGroupLabel}>Grounding Citations:</span>
+                        <div style={resultStyles.citationList}>
+                          {detail.evaluation_result.accuracy.supporting_evidence.map((cit, idx) => (
+                            <div key={idx} style={resultStyles.citationCard}>
+                              <div style={resultStyles.citationHeader}>
+                                <span
+                                  style={
+                                    cit.relation === 'contradicts'
+                                      ? resultStyles.citationRelationContradicts
+                                      : resultStyles.citationRelationSupports
+                                  }
+                                >
+                                  {cit.relation.toUpperCase()}
+                                </span>
+                                <span style={resultStyles.citationSourceId}>
+                                  Source: {cit.source_id}
+                                </span>
+                              </div>
+                              <div style={resultStyles.citationExcerpt}>"{cit.excerpt}"</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Hallucination Detection Agent Card (Milestone 2.3) */}
+                {detail.evaluation_result.hallucination && (
+                  <div style={resultStyles.card}>
+                    <div style={resultStyles.cardHeader}>
+                      <div style={resultStyles.cardBadgeGroup}>
+                        <span style={resultStyles.cardTypeTag}>HALLUCINATION DETECTION AGENT</span>
+                        <span
+                          style={{
+                            ...resultStyles.classificationBadge,
+                            ...getHallucinationBadgeStyle(detail.evaluation_result.hallucination.severity),
+                          }}
+                        >
+                          {detail.evaluation_result.hallucination.severity.toUpperCase()} HALLUCINATION RISK
+                        </span>
+                        {detail.evaluation_result.hallucination.hallucination_detected ? (
+                          <span style={resultStyles.detectedAlertBadge}>
+                            <AlertTriangle size={12} strokeWidth={2.5} />
+                            <span>HALLUCINATION DETECTED</span>
+                          </span>
+                        ) : (
+                          <span style={resultStyles.detectedCleanBadge}>
+                            <Check size={12} strokeWidth={2.5} />
+                            <span>GROUNDED / NO HALLUCINATION</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={resultStyles.scoreBox}>
+                        <span style={resultStyles.scoreNumber}>
+                          {detail.evaluation_result.hallucination.score.toFixed(1)}
+                        </span>
+                        <span style={resultStyles.scoreMax}>/ 10.0</span>
+                      </div>
+                    </div>
+
+                    <div style={resultStyles.metaInfoRow}>
+                      <span style={resultStyles.metaPill}>
+                        Confidence: {detail.evaluation_result.hallucination.confidence.toUpperCase()}
+                      </span>
+                      <span style={resultStyles.metaPill}>
+                        Model: {detail.evaluation_result.hallucination.evaluator_model}
+                      </span>
+                      <span style={resultStyles.metaPill}>
+                        Scale: 0.0 (Grounded) — 10.0 (Severe Risk)
+                      </span>
+                    </div>
+
+                    <div style={resultStyles.reasoningBox}>
+                      <h5 style={resultStyles.sectionSubtitle}>Assessment Reasoning</h5>
+                      <p style={resultStyles.reasoningText}>
+                        {detail.evaluation_result.hallucination.reasoning}
+                      </p>
+                    </div>
+
+                    {/* Claims Verification Summary Pills */}
+                    <div style={resultStyles.claimCountsSummary}>
+                      <div style={resultStyles.claimCountPill}>
+                        <span>Total Claims:</span>
+                        <strong>{detail.evaluation_result.hallucination.total_claims}</strong>
+                      </div>
+                      <div style={resultStyles.claimCountPill}>
+                        <Check size={12} strokeWidth={2.5} />
+                        <span>Supported:</span>
+                        <strong>{detail.evaluation_result.hallucination.supported_claims_count}</strong>
+                      </div>
+                      {detail.evaluation_result.hallucination.unsupported_claims_count > 0 && (
+                        <div style={resultStyles.claimCountPill}>
+                          <AlertTriangle size={12} strokeWidth={2.5} />
+                          <span>Unsupported:</span>
+                          <strong>{detail.evaluation_result.hallucination.unsupported_claims_count}</strong>
+                        </div>
+                      )}
+                      {detail.evaluation_result.hallucination.contradicted_claims_count > 0 && (
+                        <div style={{ ...resultStyles.claimCountPill, backgroundColor: '#09090b', color: '#ffffff' }}>
+                          <X size={12} strokeWidth={2.5} />
+                          <span>Contradicted:</span>
+                          <strong>{detail.evaluation_result.hallucination.contradicted_claims_count}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Individual Claims Breakdown */}
+                    {(detail.evaluation_result.hallucination.claims?.length ?? 0) > 0 && (
+                      <div style={{ marginTop: '14px' }}>
+                        <span style={resultStyles.pointGroupLabel}>Claim-by-Claim Verification & Grounding:</span>
+                        <div style={resultStyles.claimVerificationList}>
+                          {detail.evaluation_result.hallucination.claims.map((claimItem, idx) => {
+                            const isContradicted = claimItem.status === 'contradicted';
+                            const isUnsupported = claimItem.status === 'unsupported';
+                            const cardStyle = isContradicted
+                              ? resultStyles.claimCardContradicted
+                              : isUnsupported
+                              ? resultStyles.claimCardUnsupported
+                              : resultStyles.claimCard;
+
+                            return (
+                              <div key={idx} style={cardStyle}>
+                                <div style={resultStyles.claimHeader}>
+                                  <div>
+                                    {claimItem.status === 'supported' && (
+                                      <span style={resultStyles.claimStatusSupported}>
+                                        <Check size={11} strokeWidth={2.5} />
+                                        <span>SUPPORTED</span>
+                                      </span>
+                                    )}
+                                    {claimItem.status === 'unsupported' && (
+                                      <span style={resultStyles.claimStatusUnsupported}>
+                                        <AlertTriangle size={11} strokeWidth={2.5} />
+                                        <span>UNSUPPORTED / UNVERIFIED</span>
+                                      </span>
+                                    )}
+                                    {claimItem.status === 'contradicted' && (
+                                      <span style={resultStyles.claimStatusContradicted}>
+                                        <X size={11} strokeWidth={2.5} />
+                                        <span>CONTRADICTED</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  {claimItem.source_id && (
+                                    <span style={resultStyles.citationSourceId}>
+                                      Source: {claimItem.source_id}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p style={resultStyles.claimText}>
+                                  "{claimItem.claim}"
+                                </p>
+
+                                <p style={resultStyles.claimExplanation}>
+                                  {claimItem.explanation}
+                                </p>
+
+                                {claimItem.evidence_excerpt && (
+                                  <div style={resultStyles.claimEvidenceExcerpt}>
+                                    Reference Ground Truth: "{claimItem.evidence_excerpt}"
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>

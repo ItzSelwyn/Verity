@@ -28,10 +28,58 @@ export interface RelevanceJudgeOutput {
   evaluator_model: string;
 }
 
+export interface EvidenceCitation {
+  source_id: string;
+  excerpt: string;
+  relation: string;
+  claim?: string | null;
+}
+
+export interface AccuracyJudgeOutput {
+  agent: string;
+  score: number;
+  classification: 'fully_accurate' | 'mostly_accurate' | 'partially_accurate' | 'largely_inaccurate' | 'contradictory';
+  reasoning: string;
+  correct_claims: string[];
+  contradictory_claims: string[];
+  supporting_evidence: EvidenceCitation[];
+  confidence: 'high' | 'medium' | 'low';
+  evaluator_model: string;
+}
+
+export type ClaimVerificationStatus = 'supported' | 'unsupported' | 'contradicted';
+
+export interface ClaimVerification {
+  claim: string;
+  status: ClaimVerificationStatus;
+  explanation: string;
+  evidence_excerpt?: string | null;
+  source_id?: string | null;
+}
+
+export type HallucinationSeverity = 'none' | 'low' | 'moderate' | 'high' | 'severe';
+
+export interface HallucinationJudgeOutput {
+  agent: string;
+  score: number;
+  hallucination_detected: boolean;
+  severity: HallucinationSeverity;
+  reasoning: string;
+  total_claims: number;
+  supported_claims_count: number;
+  unsupported_claims_count: number;
+  contradicted_claims_count: number;
+  claims: ClaimVerification[];
+  confidence: 'high' | 'medium' | 'low';
+  evaluator_model: string;
+}
+
 export interface OrchestratedEvaluationResult {
   submission_id: string;
   status: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
   relevance?: RelevanceJudgeOutput | null;
+  accuracy?: AccuracyJudgeOutput | null;
+  hallucination?: HallucinationJudgeOutput | null;
   retrieved_evidence: RetrievedEvidenceItem[];
   overall_score?: number | null;
   verdict?: string | null;

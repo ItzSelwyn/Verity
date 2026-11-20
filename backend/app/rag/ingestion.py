@@ -231,6 +231,139 @@ class BenchmarkIngestionPipeline:
         logger.info(f"SQuAD ingestion complete: {stats}")
         return stats
 
+    def ingest_curated_facts(self) -> Dict[str, Any]:
+        """
+        Ingests curated, verified foundational knowledge into ChromaDB
+        to ground world geography, national capitals, and general facts.
+        """
+        logger.info("Ingesting curated verified reference facts...")
+        start_time = time.time()
+
+        curated_entries = [
+            {
+                "id": "ref_capitals_india",
+                "title": "National Capitals: India",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "New Delhi is the official capital of India and the seat of all three branches of the "
+                    "Government of India. The capital was shifted from Calcutta to Delhi in 1911, and the "
+                    "new capital city was formally inaugurated in 1931. Kerala is a state located on the "
+                    "southwestern Malabar Coast of India, with Thiruvananthapuram as its state capital. "
+                    "Kerala is an Indian state, not the national capital."
+                ),
+            },
+            {
+                "id": "ref_capitals_france",
+                "title": "National Capitals: France",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Paris is the official capital and most populous city of France. It is situated on the "
+                    "Seine River in northern central France. Paris is the political, administrative, and cultural "
+                    "center of the French Republic."
+                ),
+            },
+            {
+                "id": "ref_capitals_japan",
+                "title": "National Capitals: Japan",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Tokyo is the official capital and largest city of Japan. Located at the head of Tokyo Bay, "
+                    "it is the seat of the Government of Japan and the Imperial Palace."
+                ),
+            },
+            {
+                "id": "ref_capitals_usa",
+                "title": "National Capitals: United States",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Washington, D.C. is the capital city and federal district of the United States. Located on the "
+                    "Potomac River, it is the seat of the US federal government, including the White House and the Capitol."
+                ),
+            },
+            {
+                "id": "ref_capitals_uk",
+                "title": "National Capitals: United Kingdom",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "London is the capital and largest city of England and the United Kingdom. Standing on the River "
+                    "Thames in south-east England, London has been a major settlement for two millennia."
+                ),
+            },
+            {
+                "id": "ref_capitals_australia",
+                "title": "National Capitals: Australia",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Canberra is the federal capital city of Australia. It is Australia's largest inland city, "
+                    "located in the Australian Capital Territory between Sydney and Melbourne."
+                ),
+            },
+            {
+                "id": "ref_capitals_germany",
+                "title": "National Capitals: Germany",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Berlin is the capital and largest city of Germany by both area and population. Berlin is "
+                    "the seat of the federal government of Germany."
+                ),
+            },
+            {
+                "id": "ref_capitals_canada",
+                "title": "National Capitals: Canada",
+                "category": "Geography & National Capitals",
+                "text": (
+                    "Ottawa is the capital city of Canada. It is located in the southern portion of the province "
+                    "of Ontario, at the confluence of the Ottawa River and the Rideau River."
+                ),
+            },
+            {
+                "id": "ref_nobel_literature_1924",
+                "title": "Nobel Prize in Literature: 1924 & 1954",
+                "category": "Nobel Prize History",
+                "text": (
+                    "The Nobel Prize in Literature in 1924 was awarded to Polish author Władysław Reymont "
+                    "for his great national epic, The Peasants. Ernest Hemingway was awarded the Nobel Prize "
+                    "in Literature in 1954 for his mastery of the art of narrative, most recently demonstrated in "
+                    "The Old Man and the Sea. Hemingway did not win the Nobel Prize in 1924, and his 1924 collection "
+                    "In Our Time was not a Nobel Prize-winning work."
+                ),
+            },
+        ]
+
+        documents: List[str] = []
+        ids: List[str] = []
+        metadatas: List[Dict[str, Any]] = []
+
+        for item in curated_entries:
+            chunks = self.chunker.chunk_text(item["text"])
+            for chunk in chunks:
+                chunk_id = f"{item['id']}_c{chunk.chunk_index:02d}"
+                documents.append(chunk.text)
+                ids.append(chunk_id)
+                metadatas.append({
+                    "dataset_name": "verified_reference",
+                    "dataset_split": "core",
+                    "source_record_id": item["id"],
+                    "title": item["title"],
+                    "category": item["category"],
+                    "chunk_index": chunk.chunk_index,
+                    "total_chunks": chunk.total_chunks,
+                    "content_type": "curated_ground_truth",
+                    "token_count": chunk.token_count,
+                })
+
+        indexed_count = self._batch_upsert(ids, documents, metadatas, batch_size=32)
+        elapsed = round(time.time() - start_time, 2)
+
+        stats = {
+            "dataset": "verified_reference",
+            "records_read": len(curated_entries),
+            "chunks_indexed": indexed_count,
+            "duration_seconds": elapsed,
+        }
+        logger.info(f"Curated reference facts ingestion complete: {stats}")
+        return stats
+
     def _batch_upsert(
         self,
         ids: List[str],

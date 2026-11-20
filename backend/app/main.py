@@ -37,13 +37,6 @@ async def lifespan(app: FastAPI):
     so the database is never wiped on restart.
     """
     Base.metadata.create_all(bind=engine)
-    try:
-        with engine.connect() as conn:
-            cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(evaluation_submissions)").fetchall()]
-            if cols and "evaluation_result" not in cols:
-                conn.exec_driver_sql("ALTER TABLE evaluation_submissions ADD COLUMN evaluation_result TEXT")
-    except Exception:
-        pass
     yield
     # Any teardown code would go here (e.g., close connection pools)
 

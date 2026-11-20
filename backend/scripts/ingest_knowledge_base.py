@@ -27,7 +27,7 @@ def main():
     )
     parser.add_argument(
         "--dataset",
-        choices=["all", "truthfulqa", "squad"],
+        choices=["all", "truthfulqa", "squad", "curated"],
         default="all",
         help="Which dataset to ingest (default: all)",
     )
@@ -71,6 +71,12 @@ def main():
         squad_stats = pipeline.ingest_squad(limit=args.limit)
         stats.append(squad_stats)
         print(f"    ✓ SQuAD indexed: {squad_stats['chunks_indexed']} chunks in {squad_stats['duration_seconds']}s")
+
+    if args.dataset in ["all", "curated"]:
+        print("\n--- 3. Ingesting Curated Verified Facts (Geography & Core Knowledge) ---")
+        curated_stats = pipeline.ingest_curated_facts()
+        stats.append(curated_stats)
+        print(f"    ✓ Curated facts indexed: {curated_stats['chunks_indexed']} chunks in {curated_stats['duration_seconds']}s")
 
     total_chunks = pipeline.vector_store.count()
     print(f"\n[✓] Knowledge Base Ingestion Finished! Total Chunks in ChromaDB: {total_chunks}")
